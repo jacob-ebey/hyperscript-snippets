@@ -1,0 +1,9 @@
+behavior CodeExample()
+  init
+    set script to first <script/> in me
+    set html to first <div/> in me
+    call showCode(me, "_hyperscript", "language-hyperscript", script.innerHTML)
+    call showCode(me, "HTML", "language-html", html.innerHTML)
+    call Prism.highlightAllUnder(me)
+  end
+end

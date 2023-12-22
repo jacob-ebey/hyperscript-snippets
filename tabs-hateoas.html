@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_hyperscript snippets | Tabs (HATEOAS)</title>
+    <meta name="description" content="Tabs (HATEOAS) example" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing-prism.min.css"
+    />
+    <script src="/utils.js"></script>
+    <script type="text/hyperscript" src="/utils._hs"></script>
+
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.9/dist/htmx.min.js"></script>
+
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-core.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-markup.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-clike.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-javascript.min.js"></script>
+    <script src="https://unpkg.com/prism-hyperscript@1.1.1/prism-hyperscript.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        <span class="allcaps">_hyperscript snippets</span>
+      </h1>
+      <nav>
+        <p class="tool-bar">
+          <a href="/">Home</a>
+        </p>
+      </nav>
+    </header>
+    <main>
+      <h2>Tabs <small>(HATEOAS)</small></h2>
+
+      <p>
+        This is an example of making an accessible tabs component with
+        _hyperscript and HTMX utilizing HATEOAS principles.
+      </p>
+
+      <div _="install CodeExample">
+        <script type="text/hyperscript">
+          behavior Tabs(soft)
+            init
+              set allTabs to <[role=tab][aria-controls]/> in me
+              set targetId to null
+              repeat for tab in allTabs
+                if @aria-selected of tab
+                  set targetId to @aria-controls of tab
+                  set @tabindex of tab to 0
+                  set @aria-selected of tab to "true"
+                else
+                  set @tabindex of tab to -1
+                  set @aria-selected of tab to "false"
+                end
+
+                set panel to document.getElementById(@aria-controls of tab)
+                if panel
+                  if @id of panel is targetId
+                    set panel.style.display to "block"
+                    set @tabindex of panel to 0
+                  else
+                    set panel.style.display to "none"
+                    set @tabindex of panel to -1
+                  end
+                end
+              end
+            end
+            on click
+              set targetId to @aria-controls of event.target
+              if targetId
+                set allTabs to <[role=tab][aria-controls]/> in me
+                set @aria-selected of allTabs to "false"
+                set @tabindex of allTabs to -1
+                set @aria-selected of event.target to "true"
+                set @tabindex of event.target to 0
+              end
+            end
+            on htmx:afterSwap from document
+              if me contains event.detail.requestConfig.elt
+                set @aria-labelledby of event.target to event.detail.requestConfig.elt.id
+              end
+            end
+            on keydown[event.key == "ArrowRight"]
+              set nextTab to next <[role='tab'][aria-controls]/> from event.target within me with wrapping
+              focus() on nextTab
+              if not soft
+                send click to nextTab
+              end
+            end
+            on keydown[event.key == "ArrowLeft"]
+              set nextTab to previous <[role='tab'][aria-controls]/> from event.target within me with wrapping
+              focus() on nextTab
+              if not soft
+                send click to nextTab
+              end
+            end
+            on keydown[event.key == "Home"]
+              set nextTab to first <[role='tab'][aria-controls]/> in me
+              if nextTab and me contains nextTab
+                focus() on nextTab
+                if not soft
+                  send click to nextTab
+                end
+              end
+            end
+            on keydown[event.key == "End"]
+              set nextTab to last <[role='tab'][aria-controls]/> in me
+              if nextTab and me contains nextTab
+                focus() on nextTab
+                if not soft
+                  send click to nextTab
+                end
+              end
+            end
+            on keydown[event.key == "Enter" or event.key == " "]
+              if <[role='tab'][aria-controls]/> in me contains event.target
+                send click to event.target
+                halt the event
+              end
+            end
+          end
+        </script>
+        <div>
+          <h3>Hard Tabs</h3>
+          <div
+            role="tablist"
+            aria-label="Hard Tabs example"
+            _="install Tabs(soft: false)"
+          >
+            <button
+              id="example-tabs-hard-a-tab"
+              role="tab"
+              aria-controls="example-tabs-hard-content"
+              aria-selected="true"
+              hx-get="/data/tab-a-hard"
+              hx-target="#example-tabs-hard-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+            >
+              Tab A<span class="htmx-indicator">...</span>
+            </button>
+            <button
+              id="example-tabs-hard-b-tab"
+              role="tab"
+              aria-controls="example-tabs-hard-content"
+              tabindex="-1"
+              hx-get="/data/tab-b-hard"
+              hx-target="#example-tabs-hard-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+            >
+              Tab B<span class="htmx-indicator">...</span>
+            </button>
+            <button
+              id="example-tabs-hard-c-tab"
+              role="tab"
+              aria-controls="example-tabs-hard-c"
+              tabindex="-1"
+              hx-get="/data/tab-c-hard"
+              hx-target="#example-tabs-hard-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+            >
+              Tab C<span class="htmx-indicator">...</span>
+            </button>
+          </div>
+          <div
+            id="example-tabs-hard-content"
+            aria-labelledby="example-tabs-hard-a-tab"
+            role="tabpanel"
+            tabindex="0"
+          >
+            A content...
+          </div>
+
+          <h3>Soft Tabs (lazy load)</h3>
+          <div
+            role="tablist"
+            aria-label="Soft Tabs example"
+            hx-sync="replace"
+            _="install Tabs(soft: true)"
+          >
+            <button
+              id="example-tabs-soft-a-tab"
+              role="tab"
+              aria-controls="example-tabs-soft-content"
+              aria-selected="true"
+              hx-get="/data/tab-a-soft"
+              hx-target="#example-tabs-soft-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+              hx-trigger="revealed,click"
+            >
+              Tab A<span class="htmx-indicator">...</span>
+            </button>
+            <button
+              id="example-tabs-soft-b-tab"
+              role="tab"
+              aria-controls="example-tabs-soft-content"
+              tabindex="-1"
+              hx-get="/data/tab-b-soft"
+              hx-target="#example-tabs-soft-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+            >
+              Tab B<span class="htmx-indicator">...</span>
+            </button>
+            <button
+              id="example-tabs-soft-c-tab"
+              role="tab"
+              aria-controls="example-tabs-soft-c"
+              tabindex="-1"
+              hx-get="/data/tab-c-soft"
+              hx-target="#example-tabs-soft-content"
+              hx-swap="outerHTML"
+              hx-sync="closest div:replace"
+            >
+              Tab C<span class="htmx-indicator">...</span>
+            </button>
+          </div>
+          <div
+            id="example-tabs-soft-content"
+            aria-labelledby="example-tabs-soft-a-tab"
+            role="tabpanel"
+            tabindex="0"
+          >
+            Loading...
+          </div>
+        </div>
+        <pre><code></code></pre>
+      </div>
+    </main>
+  </body>
+</html>

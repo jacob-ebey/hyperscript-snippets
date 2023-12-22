@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_hyperscript snippets | Listbox</title>
+    <meta name="description" content="Listbox example" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing-prism.min.css"
+    />
+    <script src="/utils.js"></script>
+    <script type="text/hyperscript" src="/utils._hs"></script>
+
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-core.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-markup.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-clike.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-javascript.min.js"></script>
+    <script src="https://unpkg.com/prism-hyperscript@1.1.1/prism-hyperscript.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        <span class="allcaps">_hyperscript snippets</span>
+      </h1>
+      <nav>
+        <p class="tool-bar">
+          <a href="/">Home</a>
+        </p>
+      </nav>
+    </header>
+    <main>
+      <h2>Listbox</h2>
+
+      <p>
+        This is an example of making an accessible listbox component with
+        _hyperscript.
+      </p>
+
+      <div _="install CodeExample">
+        <script type="text/hyperscript">
+          behavior Listbox
+            def focusOption(nextItem)
+              set @tabindex of me to -1
+              set @tabindex of <[role=option]/> in me to -1
+              set @tabindex of nextItem to 0
+              focus() on nextItem
+            end
+            def emitSelected()
+              set selectedOptions to <[role=option][aria-selected=true]/> in me
+              send selected(selectedOptions: selectedOptions) to me
+            end
+            init
+              set @tabindex of me to -1
+              set @tabindex of <[role=option]/> in me to -1
+              set selectedOption to first <[aria-selected="true"]/> in me
+              if selectedOption
+                set @tabindex of selectedOption to 0
+              else
+                set @tabindex of first <[role=option]/> in me to 0
+              end
+            end
+            on keydown[event.key == "ArrowDown"]
+              set nextItem to next <[role=option]/>
+                from event.target
+                within me
+                with wrapping
+              if event.target is me
+                set nextItem to first <[role=option]/> in me
+              end
+              focusOption(nextItem)
+              if event.shiftKey and @aria-multiselectable of me is "true"
+                send click to nextItem
+              end
+              halt the event
+            end
+            on keydown[event.key == "ArrowUp"]
+              set nextItem to previous <[role=option]/>
+                from event.target
+                within me
+                with wrapping
+              focusOption(nextItem)
+              if event.shiftKey and @aria-multiselectable of me is "true"
+                send click to nextItem
+              end
+              halt the event
+            end
+            on keydown[event.key == "a" and event.ctrlKey and @aria-multiselectable of me is "true"]
+              set options to <[role=option]/> in me
+              set selectedOptions to <[role=option][aria-selected=true]/> in me
+              if selectedOptions.length == options.length
+                set @aria-selected of options to "false"
+              else
+                set @aria-selected of options to "true"
+              end
+              halt the event
+              emitSelected()
+            end
+            on keydown[event.key == "Enter" or event.key == " "]
+              if <[role=option]/> in me contains event.target
+                halt the event
+                send click to event.target
+              end
+            end
+            on click
+              if <[role=option]/> in me contains event.target
+                if @aria-selected of event.target is "true"
+                  if @aria-multiselectable of me is not "true"
+                    set @aria-selected of <[role=option]/> in me to "false"
+                  end
+                  set @aria-selected of event.target to "false"
+                else
+                  if @aria-multiselectable of me is not "true"
+                    set @aria-selected of <[role=option]/> in me to "false"
+                  end
+                  set @aria-selected of event.target to "true"
+                end
+                emitSelected()
+              end
+            end
+          end
+        </script>
+        <div>
+          <h3>Listbox Single Select</h3>
+          <ul
+            role="listbox"
+            aria-label="Listbox Single Select"
+            class="box flow-gap"
+            _="
+              install Listbox
+              on selected(selectedOptions)
+                alert(selectedOptions.map(\ o -> o.innerText).join('\n'))
+              end
+            "
+          >
+            <li role="option" aria-selected="false" class="box warn">Item 1</li>
+            <li role="option" aria-selected="true" class="box warn">Item 2</li>
+            <li role="option" aria-selected="false" class="box warn">Item 3</li>
+            <li role="option" aria-selected="false" class="box warn">Item 4</li>
+          </ul>
+
+          <h3>Listbox Multiple Select</h3>
+          <ul
+            role="listbox"
+            aria-label="Listbox Multiple Select"
+            aria-multiselectable="true"
+            class="box flow-gap"
+            _="
+              install Listbox
+              on selected(selectedOptions)
+                alert(selectedOptions.map(\ o -> o.innerText).join('\n'))
+              end
+            "
+          >
+            <li role="option" aria-selected="false" class="box warn">Item 1</li>
+            <li role="option" aria-selected="true" class="box warn">Item 2</li>
+            <li role="option" aria-selected="false" class="box warn">Item 3</li>
+            <li role="option" aria-selected="true" class="box warn">Item 4</li>
+          </ul>
+        </div>
+        <pre><code></code></pre>
+      </div>
+    </main>
+  </body>
+</html>

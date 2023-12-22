@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_hyperscript snippets | Dialog</title>
+    <meta name="description" content="Dialog example" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing-prism.min.css"
+    />
+    <script src="/utils.js"></script>
+    <script type="text/hyperscript" src="/utils._hs"></script>
+
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-core.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-markup.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-clike.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-javascript.min.js"></script>
+    <script src="https://unpkg.com/prism-hyperscript@1.1.1/prism-hyperscript.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        <span class="allcaps">_hyperscript snippets</span>
+      </h1>
+      <nav>
+        <p class="tool-bar">
+          <a href="/">Home</a>
+        </p>
+      </nav>
+    </header>
+    <main>
+      <h2>Dialog</h2>
+
+      <p>
+        This is an example of making an accessible dialog component with
+        _hyperscript.
+      </p>
+
+      <div _="install CodeExample">
+        <script type="text/hyperscript">
+          behavior Dialog(modal)
+            def getDialog()
+              return document.getElementById(@aria-controls of me)
+            end
+            def isInDialog(rect, e)
+              return rect.top <= e.clientY and e.clientY <= rect.top + rect.height and
+                rect.left <= e.clientX and e.clientX <= rect.left + rect.width
+            end
+            on click
+              set dialog to getDialog()
+              if modal
+                showModal() on dialog
+              else
+                dialog.show()
+              end
+            end
+            on click from getDialog()
+              if modal
+                set dialog to getDialog()
+                if not isInDialog(dialog.getBoundingClientRect(), event)
+                  close() on dialog
+                end
+              end
+            end
+            on keydown[event.key == "Tab"] from getDialog()
+              log "tab"
+              set dialog to getDialog()
+              focus() on next <input, button, a/>
+                from event.target
+                within dialog
+                with wrapping
+              halt the event
+            end
+          end
+        </script>
+        <div>
+          <h3>Dialog</h3>
+          <button
+            _="install Dialog(modal: false)"
+            aria-controls="example-dialog"
+          >
+            Show dialog
+          </button>
+          <dialog id="example-dialog">
+            <p>Dialog</p>
+            <form>
+              <button type="submit" formmethod="dialog">Cancel</button>
+              <button type="submit" formmethod="dialog" autofocus>
+                Confirm
+              </button>
+            </form>
+          </dialog>
+
+          <h3>Modal Dialog</h3>
+          <button
+            _="install Dialog(modal: true)"
+            aria-controls="example-dialog"
+          >
+            Show modal dialog
+          </button>
+          <dialog id="example-dialog">
+            <p>Modal Dialog</p>
+            <form>
+              <button type="submit" formmethod="dialog">Cancel</button>
+              <button type="submit" formmethod="dialog" autofocus>
+                Confirm
+              </button>
+            </form>
+          </dialog>
+        </div>
+        <pre><code></code></pre>
+      </div>
+    </main>
+  </body>
+</html>

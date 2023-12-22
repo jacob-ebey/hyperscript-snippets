@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>_hyperscript snippets | Menu</title>
+    <meta name="description" content="Menu example" />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/missing.css@1.1.1/dist/missing-prism.min.css"
+    />
+    <script src="/utils.js"></script>
+    <script type="text/hyperscript" src="/utils._hs"></script>
+
+    <script src="https://unpkg.com/hyperscript.org@0.9.12/dist/_hyperscript.min.js"></script>
+
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-core.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-markup.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-clike.min.js"></script>
+    <script src="https://unpkg.com/prismjs@1.25.0/components/prism-javascript.min.js"></script>
+    <script src="https://unpkg.com/prism-hyperscript@1.1.1/prism-hyperscript.js"></script>
+  </head>
+  <body>
+    <header>
+      <h1>
+        <span class="allcaps">_hyperscript snippets</span>
+      </h1>
+      <nav>
+        <p class="tool-bar">
+          <a href="/">Home</a>
+        </p>
+      </nav>
+    </header>
+    <main>
+      <h2>Menu</h2>
+
+      <p>
+        This is an example of making an accessible menu component with
+        _hyperscript.
+      </p>
+
+      <div _="install CodeExample">
+        <script type="text/hyperscript">
+          behavior Menu(autoClose)
+            def getMenuButton
+              set menuButton to first <[aria-controls]/> in me
+              if not menuButton
+                set menuButton to me
+              end
+              return menuButton
+            end
+            def getMenu(menuButton)
+              return document.getElementById(@aria-controls of menuButton)
+            end
+            init
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              set @aria-expanded of menuButton to "false"
+              set *display of menu to "none"
+
+              set menuItems to <[role=menuitem]/> in menu
+              repeat for item in menuItems
+                set @tabindex of item to -1
+              end
+            end
+            on click
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is "none"
+                set @aria-expanded of menuButton to "true"
+                set *display of menu to "block"
+                focus() on first <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu
+              else
+                set *display of menu to "none"
+                focus() on menuButton
+              end
+            end
+            on keydown[event.key == "ArrowDown"]
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+
+              if *display of menu is "none" and @role of menuButton is not "menuitem"
+                set @aria-expanded of menuButton to "true"
+                set *display of menu to "block"
+                focus() on first <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu
+                halt the event
+              end
+            end
+            on keydown[event.key == "ArrowRight"]
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is "none" and @role of menuButton is "menuitem" and @aria-controls of menuButton
+                set @aria-expanded of menuButton to "true"
+                set *display of menu to "block"
+                focus() on first <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu
+                halt the event
+              end
+            end
+            on keydown[event.key == "ArrowLeft"] from getMenu(getMenuButton())
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is not "none" and @role of menuButton is "menuitem"
+                if *display of menu is "block"
+                  set @aria-expanded of menuButton to "false"
+                  set *display of menu to "none"
+                  focus() on menuButton
+                end
+              end
+            end
+            on keydown[event.key == "ArrowDown"] from getMenu(getMenuButton())
+              set menu to getMenu(getMenuButton())
+              if *display of menu is "block"
+                set nextItem to next <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> from event.target within menu with wrapping
+                focus() on nextItem
+                halt the event
+              end
+            end
+            on keydown[event.key == "ArrowUp"] from getMenu(getMenuButton())
+              set menu to getMenu(getMenuButton())
+              if *display of menu is "block"
+                set nextItem to previous <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> from event.target within menu with wrapping
+                focus() on nextItem
+                halt the event
+              end
+            end
+            on keydown[event.key == "Home"] from getMenu(getMenuButton())
+              set menu to getMenu(getMenuButton())
+              set nextItem to first <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu
+              focus() on nextItem
+              halt the event
+            end
+            on keydown[event.key == "End"] from getMenu(getMenuButton())
+              set menu to getMenu(getMenuButton())
+              set nextItem to last <[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu
+              focus() on nextItem
+              halt the event
+            end
+            on keydown[event.key == "Escape"] from getMenu(getMenuButton())
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is "block"
+                set @aria-expanded of menuButton to "false"
+                set *display of menu to "none"
+                focus() on menuButton
+              end
+            end
+            on keydown[event.key == "Tab"] from getMenu(getMenuButton())
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is "block"
+                set @aria-expanded of menuButton to "false"
+                set *display of menu to "none"
+              end
+            end
+            on click from document
+              set menuButton to getMenuButton()
+              set menu to getMenu(menuButton)
+              if *display of menu is "block"
+                if event.target is not menuButton and not (menu contains event.target)
+                  set @aria-expanded of menuButton to "false"
+                  set *display of menu to "none"
+                  focus() on menuButton
+                else if autoClose and (<[role=menuitem],[role=menuitemradio],[role=menuitemcheckbox]/> in menu contains event.target) and @type of event.target is not "menu"
+                  set @aria-expanded of menuButton to "false"
+                  set *display of menu to "none"
+                  focus() on menuButton
+                end
+              end
+            end
+          end
+        </script>
+        <div>
+          <h3>Auto Close Menu</h3>
+          <button
+            class="iconbutton"
+            type="menu"
+            aria-controls="example-menu-autoclose"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Example Menu"
+            _="install Menu(autoClose: true)"
+          >
+            ☰
+          </button>
+          <div role="menu" id="example-menu-autoclose" style="display: none">
+            <button role="menuitem" type="button">Item 1</button>
+            <button role="menuitem" type="button">Item 2</button>
+            <button role="menuitem" type="button">Item 3</button>
+            <button role="menuitem" type="button">Item 4</button>
+            <button
+              role="menuitem"
+              type="menu"
+              aria-controls="example-menu-autoclose-submenu"
+              aria-haspopup="true"
+              aria-expanded="false"
+              aria-label="Submenu"
+              _="install Menu(autoClose: true)"
+            >
+              Submenu &gt;
+            </button>
+          </div>
+          <div
+            role="menu"
+            id="example-menu-autoclose-submenu"
+            style="display: none; margin-left: 4rem"
+          >
+            <button role="menuitem" type="button">Subitem 1</button>
+            <button role="menuitem" type="button">Subitem 2</button>
+            <button role="menuitem" type="button">Subitem 3</button>
+            <button role="menuitem" type="button">Subitem 4</button>
+          </div>
+
+          <h3>Keep Open Menu</h3>
+          <button
+            class="iconbutton"
+            type="button"
+            aria-controls="example-menu-keepopen"
+            aria-haspopup="true"
+            aria-expanded="false"
+            aria-label="Example Menu"
+            _="install Menu(autoClose: false)"
+          >
+            ☰
+          </button>
+          <div role="menu" id="example-menu-keepopen" style="display: none">
+            <button role="menuitem" type="button">Item 1</button>
+            <button role="menuitem" type="button">Item 2</button>
+            <button role="menuitem" type="button">Item 3</button>
+            <button role="menuitem" type="button">Item 4</button>
+          </div>
+        </div>
+        <pre><code></code></pre>
+      </div>
+    </main>
+  </body>
+</html>
